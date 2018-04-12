@@ -23,7 +23,6 @@ const checkCAA = name => {
     req.on('message', (err, response) => {
       const status = response.header.rcode;
 
-      console.log('status: ' + dns.consts.RCODE_TO_NAME[status])
       //console.log(err);
       //console.log(response);
 
@@ -43,6 +42,7 @@ const checkCAA = name => {
       if (status === NOERROR || status === NXDOMAIN) {
         resolve(answers);
       } else {
+        console.log('status: ' + dns.consts.RCODE_TO_NAME[status])
         reject(answers);
       }
 
