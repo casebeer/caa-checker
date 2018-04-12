@@ -5,6 +5,7 @@ const NXDOMAIN = dns.consts.NAME_TO_RCODE.NOTFOUND;
 const NOERROR = dns.consts.NAME_TO_RCODE.NOERROR;
 
 const checkCAA = name => {
+  console.log(`Checking CAA for ${name}`);
   return new Promise((resolve, reject) => {
     const req = dns.Request({
       question: dns.Question({
@@ -24,7 +25,7 @@ const checkCAA = name => {
 
       console.log('status: ' + dns.consts.RCODE_TO_NAME[status])
       //console.log(err);
-      console.log(response);
+      //console.log(response);
 
       const answers = response.answer.filter(({ type:type }) => type === CAA_RRTYPE)
         .map(({ data: { buffer: buffer }}) => { 
@@ -70,21 +71,37 @@ const checkCAA = name => {
 //
 //   o  R(X) is empty.
 
-/*
 const CAA = checkCAA;
-const P = X => {
-  
+
+const P = name => {
+  const parent = name.split(/\.(.+)/)[1];
+  if (parent === undefined) {
+    return '.';
+  }
+  return parent;
 };
-const A = async X => {};
+
+const A = async name => {
+  // TODO: DNAME
+  // TODO: General DNS query Promise wrapper
+  return new Promise((resolve, reject) => {
+    dns.resolveCname(name, (err, addresses) => {
+      if (!!addresses && addresses.length > 0) {
+        resolve(addresses[0]);
+      }
+      resolve(null);
+    });
+  });
+};
 const R = async X => {
   const caa = await CAA(X);
-  if (caa !== []) {
+  if (caa.length > 0) {
     return caa;
   }
   const alias = await A(X);
-  if (alias !== '') {
+  if (!!alias) {
     const aliasCAA = await R(alias);
-    if (aliasCAA !== []) {
+    if (aliasCAA.length > 0) {
       return aliasCAA;
     }
   }
@@ -94,7 +111,6 @@ const R = async X => {
   }
   return [];
 };
-*/
 
-checkCAA(process.argv[2]).then(console.log, console.log);
+R(process.argv[2]).then(console.log, console.log);
 
