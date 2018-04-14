@@ -1,8 +1,7 @@
 
 const dns = require('native-dns');
 const CAA_RRTYPE = 257;
-const NXDOMAIN = dns.consts.NAME_TO_RCODE.NOTFOUND;
-const NOERROR = dns.consts.NAME_TO_RCODE.NOERROR;
+const { NOTFOUND:NXDOMAIN, NOERROR } = dns.consts.NAME_TO_RCODE;
 
 const checkCAA = name => {
   console.log(`Checking CAA for ${name}`);
@@ -29,8 +28,8 @@ const checkCAA = name => {
       const answers = response.answer.filter(({ type:type }) => type === CAA_RRTYPE)
         .map(({ data: { buffer: buffer }}) => { 
           // [ flags ] [ tagLength ] [ tag ... ] [ value ... ]
-          const tagLength = buffer[1];
           const criticalFlag = buffer[0] & 0x1;
+          const tagLength = buffer[1];
           const tag = buffer.toString('ascii', 2, 2 + tagLength); 
           const value = buffer.toString('ascii', 2 + tagLength); 
 
